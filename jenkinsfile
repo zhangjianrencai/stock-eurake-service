@@ -1,0 +1,18 @@
+node {
+   stage('git clone') {
+     checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'github', url: 'https://github.com/zhangjianrencai/stock-service-eurake.git']]])
+   }
+   stage('build') {
+           withMaven(
+            maven: 'maven353',
+            mavenLocalRepo: '.repository') {
+                sh "mvn clean install -Dmaven.test.skip=true"
+        }
+   }
+   stage('deploy') {
+        sh "pwd"
+        sh "mv ./target/stock-service-eureka-0.0.1-SNAPSHOT.jar ./"
+        sh "docker build -t springbooteurake ."
+        sh "docker run -d -p 10301:8761 springbooteurake"
+   }
+}
